@@ -319,7 +319,7 @@ SAGE_SCRIPTS
         renderer.setSize( window.innerWidth, window.innerHeight );
         updateCameraAspect( camera, window.innerWidth / window.innerHeight );
         if ( window.rescaleFatLines ) rescaleFatLines();
-        if ( stereoTargetL ) { stereoTargetL.dispose(); stereoTargetR.dispose(); stereoTargetL = null; stereoTargetR = null; }
+        if ( typeof disposeStereoTargets === 'function' ) disposeStereoTargets();
         if ( !animate ) render();
 
     } );
@@ -637,9 +637,16 @@ SAGE_SCRIPTS
 
         var w = renderer.domElement.width, h = renderer.domElement.height;
         if ( stereoTargetL && stereoTargetL.width === w && stereoTargetL.height === h ) return;
-        if ( stereoTargetL ) { stereoTargetL.dispose(); stereoTargetR.dispose(); }
+        disposeStereoTargets();
         stereoTargetL = new THREE.WebGLRenderTarget( w, h );
         stereoTargetR = new THREE.WebGLRenderTarget( w, h );
+
+    }
+
+    function disposeStereoTargets() {
+
+        // Release WebGL render targets allocated for anaglyph/parallax modes.
+        if ( stereoTargetL ) { stereoTargetL.dispose(); stereoTargetR.dispose(); stereoTargetL = null; stereoTargetR = null; }
 
     }
 
@@ -728,6 +735,8 @@ SAGE_SCRIPTS
     function setStereoMode( mode ) {
 
         stereoState.mode = mode;
+        // Only anaglyph and parallax modes need offscreen render targets; release them otherwise.
+        if ( mode !== 'anaglyph' && mode !== 'parallax' ) disposeStereoTargets();
         document.getElementById( 'stereo-options' ).style.display = mode === 'none' ? 'none' : 'block';
         document.getElementById( 'stereo-sbs-options' ).style.display = mode === 'side-by-side' ? 'block' : 'none';
         if ( !animate ) render();
