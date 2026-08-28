@@ -155,7 +155,8 @@ SAGE_LIB = var("SAGE_LIB", os.path.dirname(os.path.dirname(__file__)))
 SAGE_EXTCODE = var("SAGE_EXTCODE", join(SAGE_LIB, "sage", "ext_data"))
 
 # prefix hierarchy where non-Python packages are installed
-SAGE_LOCAL = var("SAGE_LOCAL")
+# Sage-the-Distro sets SAGE_LOCAL; pure Python installs use the active prefix.
+SAGE_LOCAL = var("SAGE_LOCAL", os.path.abspath(sys.prefix))
 SAGE_SHARE = var("SAGE_SHARE", join(SAGE_LOCAL, "share"))
 SAGE_DOC = var("SAGE_DOC", join(SAGE_SHARE, "doc", "sage"))
 SAGE_LOCAL_SPKG_INST = var("SAGE_LOCAL_SPKG_INST", join(SAGE_LOCAL, "var", "lib", "sage", "installed"))
@@ -440,8 +441,7 @@ def cython_aliases(required_modules=None, optional_modules=None):
     def uname_specific(name, value, alternative):
         if name in UNAME[0]:
             return value
-        else:
-            return alternative
+        return alternative
 
     aliases["LINUX_NOEXECSTACK"] = uname_specific("Linux", ["-Wl,-z,noexecstack"],
                                                   [])
